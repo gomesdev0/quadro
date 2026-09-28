@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meu Quadro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1E1B17; --bg-light:#EDE7DC;
+  --col:#2A251F; --col-light:#FFFFFF;
+  --ink:#EFE9DD; --ink-light:#221E19;
+  --line:#463F35; --line-light:#DAD2C0;
+  --accent1:#C1653A; --accent2:#7C8B57; --accent3:#5C7A8A; --accent4:#C9A227; --accent5:#8A6B9E; --accent6:#B4534F;
+  --accent-main:#C1653A;
+  --good:#6F9E6A; --bad:#B4534F;
+  --font-h:'Space Grotesk',sans-serif; --font-b:'Inter',system-ui,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){ --bg:var(--bg-light); --col:var(--col-light); --ink:var(--ink-light); --line:var(--line-light); }
+}
+:root[data-theme="light"]{ --bg:var(--bg-light); --col:var(--col-light); --ink:var(--ink-light); --line:var(--line-light); }
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-b);}
+h1,h2,h3{font-family:var(--font-h); margin:0; font-weight:600;}
+button,input,select{font-family:var(--font-b);}
+
+header{padding:16px clamp(14px,4vw,36px) 0; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+header h1{font-size:clamp(20px,3.6vw,26px); letter-spacing:.2px;}
+.header-right{display:flex; align-items:center; gap:10px;}
+header span{font-size:12px; opacity:.55;}
+.gear{background:none; border:1.5px solid var(--line); border-radius:6px; padding:6px 9px; font-size:14px; color:var(--ink); opacity:.75;}
+.gear:hover{opacity:1;}
+
+.tabbar{display:flex; gap:6px; padding:14px clamp(14px,4vw,36px) 0;}
+.tabbar button{padding:8px 16px; border-radius:20px; border:1.5px solid var(--line); background:none; color:var(--ink); font-size:13.5px; font-weight:500; opacity:.65;}
+.tabbar button.active{background:var(--accent-main); border-color:var(--accent-main); color:#fff; opacity:1;}
+
+.board{display:flex; gap:16px; padding:14px clamp(14px,4vw,36px) 40px; overflow-x:auto;}
+.column{background:var(--col); border-radius:12px; padding:14px; width:270px; min-width:270px; display:flex; flex-direction:column; gap:10px; border-top:5px solid var(--accent1);}
+.col-head{display:flex; justify-content:space-between; align-items:center; gap:6px;}
+.col-head h2{font-size:16px;}
+.icon-btn{background:none; border:none; opacity:.45; font-size:12px; padding:2px 4px; color:var(--ink);}
+.icon-btn:hover{opacity:1;}
+
+.card{background:var(--bg); border:1.5px solid var(--line); border-radius:8px; overflow:hidden;}
+.card-head{padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:6px; cursor:pointer; font-size:14px; font-weight:500;}
+.card-head:hover{background:rgba(255,255,255,.03);}
+.card-counts{font-size:10.5px; opacity:.55; display:block; margin-top:3px; font-weight:400;}
+.card.open .card-head{border-bottom:1px solid var(--line);}
+.card-body{display:none; padding:12px;}
+.card.open .card-body{display:block;}
+
+.add-folder-btn{border:1.5px dashed var(--line); background:none; border-radius:8px; padding:9px; font-size:12.5px; opacity:.7; color:var(--ink);}
+.add-folder-btn:hover{opacity:1;}
+
+.new-column{background:none; border:2px dashed var(--line); border-radius:12px; width:230px; min-width:230px; display:flex; align-items:center; justify-content:center; font-size:13.5px; color:var(--ink); opacity:.65;}
+.new-column:hover{opacity:1;}
+
+.empty-board{padding:60px 20px; opacity:.6; font-size:14px;}
+
+.block{margin-bottom:16px;}
+.block-head h3{font-size:11px; text-transform:uppercase; letter-spacing:.6px; opacity:.55; font-weight:600; margin-bottom:8px;}
+
+.add-row{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;}
+.add-row input[type=text],.add-row input[type=number],.add-row input[type=date]{flex:1; min-width:100px;}
+.add-row input,.add-row select{padding:7px 9px; border:1.5px solid var(--line); border-radius:4px; background:var(--col); color:var(--ink); font-size:13px;}
+.add-row button{padding:7px 12px; border:none; border-radius:4px; background:var(--accent-main); color:#fff; font-weight:600; font-size:13px;}
+.add-row button:hover{opacity:.9;}
+
+.list{display:flex; flex-direction:column; gap:6px;}
+.item{background:var(--col); border:1px solid var(--line); border-radius:6px; padding:8px 10px; display:flex; align-items:flex-start; gap:8px;}
+.item.done{opacity:.5;}
+.item.done .item-title{text-decoration:line-through;}
+.item input[type=checkbox]{margin-top:2px; width:15px; height:15px; accent-color:var(--accent-main); flex-shrink:0;}
+.item-body{flex:1; min-width:0;}
+.item-title{font-size:13.5px; word-break:break-word;}
+.item-meta{font-size:11px; opacity:.6; margin-top:2px; display:flex; gap:6px; flex-wrap:wrap;}
+.badge{padding:1px 7px; border-radius:9px; font-size:10px; font-weight:600;}
+.b-compras{background:#E4D2B0; color:#5A431A;}
+.b-aulas{background:#C7D9D3; color:#204038;}
+.b-provas{background:#E9C6C6; color:#5C2323;}
+.b-estudos{background:#CFD3E8; color:#2A2E5C;}
+.b-entrada{background:#C7D9C0; color:#254022;}
+.b-saida{background:#E9C6C6; color:#5C2323;}
+.del{background:none; border:none; color:var(--accent6); font-size:14px; opacity:.6; padding:2px 4px; flex-shrink:0;}
+.del:hover{opacity:1;}
+.empty{opacity:.5; font-size:12.5px; padding:6px 0;}
+
+.poll{border:1px solid var(--line); border-radius:7px; padding:11px; margin-bottom:10px; background:var(--col);}
+.poll-head{display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:8px;}
+.poll-head h4{font-size:13.5px; font-family:var(--font-h); font-weight:600;}
+table{width:100%; border-collapse:collapse; font-size:12px;}
+th,td{text-align:left; padding:5px 4px; border-bottom:1px solid var(--line);}
+th{font-weight:600; font-size:10px; opacity:.6;}
+td input[type=text],td input[type=number]{width:100%; padding:4px 5px; border:1px solid var(--line); border-radius:4px; background:var(--bg); color:var(--ink); font-size:12px;}
+select.status{padding:4px 5px; border:1px solid var(--line); border-radius:4px; background:var(--bg); color:var(--ink); font-size:11.5px;}
+.poll-summary{margin-top:8px; font-size:11.5px; opacity:.75; display:flex; gap:12px; flex-wrap:wrap;}
+.poll-summary b{opacity:1;}
+.new-poll{padding:7px 12px; border:1.5px solid var(--accent-main); background:none; border-radius:4px; font-size:12px; font-weight:600; color:var(--ink); margin-bottom:10px;}
+.status-manage{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px;}
+.status-chip{font-size:10.5px; padding:3px 8px; border-radius:10px; background:var(--bg); border:1px solid var(--line); opacity:.75;}
+.add-status-btn{font-size:11px; padding:4px 9px; border-radius:10px; border:1px dashed var(--line); background:none; color:var(--ink); opacity:.7;}
+.add-status-btn:hover{opacity:1;}
+
+.finance-wrap{padding:14px clamp(14px,4vw,36px) 50px; max-width:900px; margin:0 auto;}
+.summary-row{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;}
+.sum-card{background:var(--col); border:1.5px solid var(--line); border-radius:10px; padding:14px 18px; flex:1; min-width:140px;}
+.sum-card .label{font-size:11px; text-transform:uppercase; opacity:.55; letter-spacing:.4px; margin-bottom:6px;}
+.sum-card .value{font-size:20px; font-family:var(--font-h); font-weight:600;}
+.sum-card.entrada .value{color:var(--good);}
+.sum-card.saida .value{color:var(--bad);}
+
+.cat-budget{background:var(--col); border:1.5px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:10px;}
+.cat-budget-top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+.cat-budget-top h4{font-size:14.5px; font-family:var(--font-h);}
+.cat-budget-top input{width:100px; padding:5px 7px; border:1px solid var(--line); border-radius:4px; background:var(--bg); color:var(--ink); font-size:13px;}
+.bar-track{height:7px; border-radius:5px; background:var(--bg); margin-top:9px; overflow:hidden;}
+.bar-fill{height:100%; border-radius:5px;}
+.cat-budget-meta{display:flex; justify-content:space-between; font-size:11.5px; opacity:.75; margin-top:6px;}
+.status-ok{color:var(--good); font-weight:600;}
+.status-no{color:var(--bad); font-weight:600;}
+
+.ledger-item{display:flex; align-items:center; gap:10px; background:var(--col); border:1px solid var(--line); border-radius:6px; padding:9px 12px; margin-bottom:6px; font-size:13px;}
+.ledger-item .amt{margin-left:auto; font-weight:600; white-space:nowrap;}
+.ledger-item .amt.entrada{color:var(--good);}
+.ledger-item .amt.saida{color:var(--bad);}
+.ledger-item .cat-tag{opacity:.6; font-size:11.5px;}
+
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px;}
+.modal-box{background:var(--col); border:1.5px solid var(--line); border-radius:10px; padding:20px; width:100%; max-width:320px; display:flex; flex-direction:column; gap:12px;}
+.modal-box p{margin:0; font-size:14px; color:var(--ink);}
+.modal-box input[type=text]{padding:9px 11px; border:1.5px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); font-size:14px; width:100%;}
+.modal-box input[type=color]{width:100%; height:42px; border:1.5px solid var(--line); border-radius:6px; background:var(--bg); padding:2px;}
+.modal-actions{display:flex; justify-content:flex-end; gap:8px;}
+.modal-actions button{padding:8px 14px; border-radius:6px; border:none; font-size:13px; font-weight:600; cursor:pointer;}
+.modal-cancel{background:none; border:1.5px solid var(--line); color:var(--ink);}
+.modal-ok{background:var(--accent-main); color:#fff;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Meu Quadro</h1>
+  <div class="header-right"><span id="today"></span><button class="gear" id="gearBtn" title="Cor do app">⚙</button></div>
+</header>
+<div class="tabbar" id="tabbar"></div>
+<div id="main"></div>
+
+<script>
+const STORE_KEY = 'organizador-quadro-v2';
+const ACCENTS = ['var(--accent1)','var(--accent2)','var(--accent3)','var(--accent4)','var(--accent5)','var(--accent6)'];
+const DEFAULT_STATUS = [{v:'confirmado',label:'Confirmado'},{v:'desistiu',label:'Desistiu'},{v:'pendente',label:'Pendente'}];
+let data = load();
+let ledgerFilterCat = 'all';
+let ledgerFilterType = 'all';
+applyTheme();
+
+function load(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) return migrate(JSON.parse(raw)); }catch(e){}
+  return { categories:[], tasks:{}, polls:{}, openFolders:{}, view:'board',
+    finance:{ transactions:[], budgets:{}, customCategories:{entrada:[],saida:[]} }, theme:{ accent:'#C1653A' } };
+}
+function migrate(d){
+  if(!d.finance) d.finance = { transactions:[], budgets:{}, customCategories:{entrada:[],saida:[]} };
+  if(!d.finance.customCategories) d.finance.customCategories = {entrada:[],saida:[]};
+  if(!d.theme) d.theme = { accent:'#C1653A' };
+  if(!d.view) d.view = 'board';
+  Object.values(d.polls||{}).forEach(list=> list.forEach(p=>{ if(!p.statusOptions) p.statusOptions = JSON.parse(JSON.stringify(DEFAULT_STATUS)); p.people.forEach(person=>{ if(!person.id) person.id = uid(); }); }));
+  return d;
+}
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){} }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function applyTheme(){ document.documentElement.style.setProperty('--accent-main', data.theme.accent); }
+const REMINDER_TYPES = [
+  {v:'compras', label:'Compras'}, {v:'aulas', label:'Aulas'},
+  {v:'provas', label:'Provas'}, {v:'estudos', label:'Estudos'},
+];
+function formatDate(iso){ const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+function todayIso(){ return new Date().toISOString().slice(0,10); }
+function monthKey(){ return new Date().toISOString().slice(0,7); }
+
+function closeModal(){ const m=document.getElementById('modal-root'); if(m) m.remove(); }
+function showTextModal(label, onSubmit, placeholder){
+  closeModal();
+  const overlay=document.createElement('div');
+  overlay.id='modal-root'; overlay.className='modal-overlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) closeModal(); };
+  const box=document.createElement('div'); box.className='modal-box';
+  box.innerHTML=`<p>${label}</p>`;
+  const input=document.createElement('input'); input.type='text'; input.placeholder=placeholder||'';
+  box.appendChild(input);
+  const actions=document.createElement('div'); actions.className='modal-actions';
+  const cancel=document.createElement('button'); cancel.className='modal-cancel'; cancel.textContent='Cancelar'; cancel.onclick=closeModal;
+  const ok=document.createElement('button'); ok.className='modal-ok'; ok.textContent='Confirmar';
+  const submit=()=>{ const v=input.value.trim(); if(v){ closeModal(); onSubmit(v); } };
+  ok.onclick=submit;
+  input.onkeydown=(e)=>{ if(e.key==='Enter') submit(); };
+  actions.append(cancel, ok);
+  box.appendChild(actions);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  setTimeout(()=>input.focus(), 30);
+}
+function showConfirmModal(label, onConfirm){
+  closeModal();
+  const overlay=document.createElement('div'); overlay.id='modal-root'; overlay.className='modal-overlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) closeModal(); };
+  const box=document.createElement('div'); box.className='modal-box';
+  box.innerHTML=`<p>${label}</p>`;
+  const actions=document.createElement('div'); actions.className='modal-actions';
+  const cancel=document.createElement('button'); cancel.className='modal-cancel'; cancel.textContent='Cancelar'; cancel.onclick=closeModal;
+  const ok=document.createElement('button'); ok.className='modal-ok'; ok.textContent='Excluir';
+  ok.onclick=()=>{ closeModal(); onConfirm(); };
+  actions.append(cancel, ok);
+  box.appendChild(actions);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+function showColorModal(current, onSubmit){
+  closeModal();
+  const overlay=document.createElement('div'); overlay.id='modal-root'; overlay.className='modal-overlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) closeModal(); };
+  const box=document.createElement('div'); box.className='modal-box';
+  box.innerHTML=`<p>Cor principal do app</p>`;
+  const input=document.createElement('input'); input.type='color'; input.value=current;
+  box.appendChild(input);
+  const actions=document.createElement('div'); actions.className='modal-actions';
+  const cancel=document.createElement('button'); cancel.className='modal-cancel'; cancel.textContent='Cancelar'; cancel.onclick=closeModal;
+  const ok=document.createElement('button'); ok.className='modal-ok'; ok.textContent='Aplicar';
+  ok.onclick=()=>{ closeModal(); onSubmit(input.value); };
+  actions.append(cancel, ok);
+  box.appendChild(actions);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+document.getElementById('gearBtn').onclick = ()=>{
+  showColorModal(data.theme.accent, (color)=>{
+    data.theme.accent = color; applyTheme(); save(); render();
+  });
+};
+
+function render(){
+  renderTabbar();
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  if(data.view === 'financas') renderFinanceView(main);
+  else renderBoardView(main);
+}
+
+function renderTabbar(){
+  const bar = document.getElementById('tabbar');
+  bar.innerHTML = '';
+  [['board','Quadro'],['financas','Finanças']].forEach(([v,label])=>{
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.className = data.view===v ? 'active' : '';
+    b.onclick = ()=>{ data.view = v; save(); render(); };
+    bar.appendChild(b);
+  });
+}
+
+/* ---------- BOARD VIEW ---------- */
+function renderBoardView(root){
+  const board = document.createElement('div');
+  board.className = 'board';
+  root.appendChild(board);
+  if(data.categories.length === 0){
+    board.insertAdjacentHTML('beforeend', '<div class="empty-board">Nenhuma categoria ainda. Crie a primeira — por exemplo, Financiamento ou Residência.</div>');
+  }
+  data.categories.forEach((cat, idx)=>{
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.style.borderTopColor = ACCENTS[idx % ACCENTS.length];
+
+    const head = document.createElement('div');
+    head.className = 'col-head';
+    head.innerHTML = `<h2>${escapeHtml(cat.name)}</h2>`;
+    const delCat = document.createElement('button');
+    delCat.className = 'icon-btn'; delCat.textContent = 'excluir';
+    delCat.onclick = ()=>{
+      showConfirmModal('Excluir a categoria "'+escapeHtml(cat.name)+'" e todas as suas pastas?', ()=>{
+        cat.subfolders.forEach(f=>{ delete data.tasks[f.id]; delete data.polls[f.id]; delete data.openFolders[f.id]; });
+        data.categories = data.categories.filter(c=>c.id!==cat.id);
+        save(); render();
+      });
+    };
+    head.appendChild(delCat);
+    col.appendChild(head);
+
+    cat.subfolders.forEach(f0=>{
+      const f = {...f0, catId:cat.id, catName:cat.name};
+      if(!data.tasks[f.id]) data.tasks[f.id] = [];
+      if(!data.polls[f.id]) data.polls[f.id] = [];
+      const open = !!data.openFolders[f.id];
+      const card = document.createElement('div');
+      card.className = 'card' + (open ? ' open' : '');
+      const tasks = data.tasks[f.id].filter(t=>!t.isReminder);
+      const reminders = data.tasks[f.id].filter(t=>t.isReminder);
+      const polls = data.polls[f.id];
+      const cHead = document.createElement('div');
+      cHead.className = 'card-head';
+      cHead.innerHTML = `<span>${escapeHtml(f.name)}<span class="card-counts">${tasks.filter(t=>!t.done).length} tarefas · ${reminders.length} lembretes · ${polls.length} enquetes</span></span><span>${open?'▾':'▸'}</span>`;
+      cHead.onclick = ()=>{ data.openFolders[f.id] = !open; save(); render(); };
+      card.appendChild(cHead);
+
+      if(open){
+        const body = document.createElement('div');
+        body.className = 'card-body';
+        body.appendChild(makeTaskBlock('Tarefas', f, false));
+        body.appendChild(makeTaskBlock('Lembretes', f, true));
+        body.appendChild(makeFinanceBlock(f));
+        body.appendChild(makePollBlock(f));
+        card.appendChild(body);
+      }
+      col.appendChild(card);
+    });
+
+    const addFolder = document.createElement('button');
+    addFolder.className = 'add-folder-btn';
+    addFolder.textContent = '+ nova pasta';
+    addFolder.onclick = ()=>{
+      showTextModal('Nome da nova pasta em "'+escapeHtml(cat.name)+'":', (name)=>{
+        const id = uid();
+        cat.subfolders.push({id, name});
+        data.tasks[id]=[]; data.polls[id]=[]; data.openFolders[id]=true;
+        save(); render();
+      }, 'ex: Contas de luz');
+    };
+    col.appendChild(addFolder);
+    board.appendChild(col);
+  });
+
+  const addCat = document.createElement('button');
+  addCat.className = 'new-column';
+  addCat.textContent = '+ nova categoria';
+  addCat.onclick = ()=>{
+    showTextModal('Nome da nova categoria:', (name)=>{
+      data.categories.push({id:uid(), name, subfolders:[]});
+      save(); render();
+    }, 'ex: Financiamento, Residência...');
+  };
+  board.appendChild(addCat);
+}
+
+function makeTaskBlock(label, folder, isReminder){
+  const block = document.createElement('div');
+  block.className = 'block';
+  block.innerHTML = `<div class="block-head"><h3>${label}</h3></div>`;
+
+  const addRow = document.createElement('div');
+  addRow.className = 'add-row';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = isReminder ? 'Novo lembrete...' : 'Nova tarefa...';
+  addRow.appendChild(input);
+  let typeSelect, dueInput;
+  if(isReminder){
+    typeSelect = document.createElement('select');
+    REMINDER_TYPES.forEach(t=>{ const o=document.createElement('option'); o.value=t.v; o.textContent=t.label; typeSelect.appendChild(o); });
+    addRow.appendChild(typeSelect);
+    dueInput = document.createElement('input'); dueInput.type = 'date';
+    addRow.appendChild(dueInput);
+  }
+  const btn = document.createElement('button');
+  btn.textContent = 'Add';
+  btn.onclick = ()=>{
+    const title = input.value.trim();
+    if(!title) return;
+    const item = { id:uid(), title, done:false };
+    if(isReminder){ item.type = typeSelect.value; item.due = dueInput.value; item.isReminder = true; }
+    data.tasks[folder.id].push(item);
+    data.openFolders[folder.id] = true;
+    save(); render();
+  };
+  addRow.appendChild(btn);
+  block.appendChild(addRow);
+
+  const list = document.createElement('div');
+  list.className = 'list';
+  const items = data.tasks[folder.id].filter(t => !!t.isReminder === isReminder);
+  if(items.length === 0){
+    list.innerHTML = `<p class="empty">${isReminder ? 'Nenhum lembrete ainda.' : 'Nenhuma tarefa ainda.'}</p>`;
+  } else {
+    items.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'item' + (it.done ? ' done' : '');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = it.done;
+      cb.onchange = ()=>{ it.done = cb.checked; data.openFolders[folder.id]=true; save(); render(); };
+      row.appendChild(cb);
+      const body = document.createElement('div');
+      body.className = 'item-body';
+      let meta = '';
+      if(it.isReminder){
+        meta += `<span class="badge b-${it.type}">${REMINDER_TYPES.find(t=>t.v===it.type)?.label||it.type}</span>`;
+        if(it.due) meta += `<span>até ${formatDate(it.due)}</span>`;
+      }
+      body.innerHTML = `<div class="item-title">${escapeHtml(it.title)}</div>` + (meta ? `<div class="item-meta">${meta}</div>` : '');
+      row.appendChild(body);
+      const del = document.createElement('button');
+      del.className = 'del'; del.textContent = '✕';
+      del.onclick = ()=>{ data.tasks[folder.id] = data.tasks[folder.id].filter(x=>x.id!==it.id); data.openFolders[folder.id]=true; save(); render(); };
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+  block.appendChild(list);
+  return block;
+}
+
+function makeFinanceBlock(folder){
+  const block = document.createElement('div');
+  block.className = 'block';
+  block.innerHTML = `<div class="block-head"><h3>Financeiro</h3></div>`;
+
+  const addRow = document.createElement('div');
+  addRow.className = 'add-row';
+  const valInput = document.createElement('input'); valInput.type='number'; valInput.min='0'; valInput.step='0.01'; valInput.placeholder='Valor gasto';
+  const noteInput = document.createElement('input'); noteInput.type='text'; noteInput.placeholder='Com o quê?';
+  const btn = document.createElement('button'); btn.textContent = 'Add';
+  btn.onclick = ()=>{
+    const amount = parseFloat(valInput.value);
+    if(!amount || amount<=0) return;
+    data.finance.transactions.push({ id:uid(), type:'saida', amount, categoryId:folder.catId, folderId:folder.id, note:noteInput.value.trim(), date:todayIso(), source:'folder' });
+    valInput.value=''; noteInput.value=''; data.openFolders[folder.id]=true;
+    save(); render();
+  };
+  addRow.append(valInput, noteInput, btn);
+  block.appendChild(addRow);
+
+  const list = document.createElement('div');
+  list.className = 'list';
+  const entries = data.finance.transactions.filter(t=>t.folderId===folder.id);
+  if(entries.length===0){
+    list.innerHTML = '<p class="empty">Nenhum lançamento nesta pasta.</p>';
+  } else {
+    entries.slice().reverse().forEach(t=>{
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<div class="item-body"><div class="item-title">${escapeHtml(t.note||'(sem descrição)')}</div>
+        <div class="item-meta"><span class="badge b-${t.type}">${t.type==='entrada'?'Entrada':'Saída'}</span><span>${t.type==='entrada'?'+':'-'} R$ ${t.amount.toFixed(2)}</span><span>${formatDate(t.date)}</span></div></div>`;
+      const del = document.createElement('button'); del.className='del'; del.textContent='✕';
+      del.onclick = ()=>{ data.finance.transactions = data.finance.transactions.filter(x=>x.id!==t.id); save(); render(); };
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+  block.appendChild(list);
+  return block;
+}
+
+function syncPollPayment(folder, poll, person){
+  const txId = 'poll_'+poll.id+'_'+person.id;
+  const amount = parseFloat(person.paid)||0;
+  const idx = data.finance.transactions.findIndex(t=>t.id===txId);
+  if(amount>0){
+    const prevDate = idx>=0 ? data.finance.transactions[idx].date : todayIso();
+    const tx = { id:txId, type:'entrada', amount, categoryId:folder.catId, folderId:folder.id, note: poll.title+' — '+(person.name||'sem nome'), date:prevDate, source:'poll' };
+    if(idx>=0) data.finance.transactions[idx] = tx; else data.finance.transactions.push(tx);
+  } else if(idx>=0){
+    data.finance.transactions.splice(idx,1);
+  }
+}
+
+function makePollBlock(folder){
+  const block = document.createElement('div');
+  block.className = 'block';
+  block.innerHTML = `<div class="block-head"><h3>Enquetes</h3></div>`;
+
+  const newBtn = document.createElement('button');
+  newBtn.className = 'new-poll';
+  newBtn.textContent = '+ nova enquete';
+  newBtn.onclick = ()=>{
+    showTextModal('Título da enquete:', (title)=>{
+      data.polls[folder.id].push({ id:uid(), title, people:[], statusOptions: JSON.parse(JSON.stringify(DEFAULT_STATUS)) });
+      data.openFolders[folder.id] = true;
+      save(); render();
+    }, 'ex: Aniversário da Ana');
+  };
+  block.appendChild(newBtn);
+
+  if(data.polls[folder.id].length === 0){
+    block.insertAdjacentHTML('beforeend', '<p class="empty">Nenhuma enquete nesta pasta.</p>');
+    return block;
+  }
+
+  data.polls[folder.id].forEach(poll=>{
+    if(!poll.statusOptions) poll.statusOptions = JSON.parse(JSON.stringify(DEFAULT_STATUS));
+    const box = document.createElement('div');
+    box.className = 'poll';
+    const head = document.createElement('div');
+    head.className = 'poll-head';
+    head.innerHTML = `<h4>${escapeHtml(poll.title)}</h4>`;
+    const delPoll = document.createElement('button');
+    delPoll.className = 'del'; delPoll.textContent = 'excluir'; delPoll.style.fontSize='11px';
+    delPoll.onclick = ()=>{
+      data.polls[folder.id] = data.polls[folder.id].filter(p=>p.id!==poll.id);
+      data.finance.transactions = data.finance.transactions.filter(t=>!(t.id||'').startsWith('poll_'+poll.id+'_'));
+      data.openFolders[folder.id]=true; save(); render();
+    };
+    head.appendChild(delPoll);
+    box.appendChild(head);
+
+    const table = document.createElement('table');
+    table.innerHTML = `<thead><tr><th>Nome</th><th>Status</th><th>Pago</th><th></th></tr></thead>`;
+    const tbody = document.createElement('tbody');
+    poll.people.forEach(p=>{
+      const tr = document.createElement('tr');
+      const tdName = document.createElement('td');
+      const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.value=p.name;
+      nameInput.oninput = ()=>{ p.name = nameInput.value; save(); };
+      tdName.appendChild(nameInput);
+      const tdStatus = document.createElement('td');
+      const sel = document.createElement('select'); sel.className='status';
+      poll.statusOptions.forEach(opt=>{
+        const o=document.createElement('option'); o.value=opt.v; o.textContent=opt.label; if(p.status===opt.v) o.selected=true; sel.appendChild(o);
+      });
+      sel.onchange = ()=>{ p.status = sel.value; save(); renderPollSummary(box, poll); };
+      tdStatus.appendChild(sel);
+      const tdPaid = document.createElement('td');
+      const paidInput = document.createElement('input'); paidInput.type='number'; paidInput.min='0'; paidInput.step='0.01'; paidInput.value=p.paid||0;
+      paidInput.oninput = ()=>{ p.paid = parseFloat(paidInput.value)||0; syncPollPayment(folder, poll, p); save(); renderPollSummary(box, poll); };
+      tdPaid.appendChild(paidInput);
+      const tdDel = document.createElement('td');
+      const delP = document.createElement('button'); delP.className='del'; delP.textContent='✕';
+      delP.onclick = ()=>{
+        poll.people = poll.people.filter(x=>x!==p);
+        data.finance.transactions = data.finance.transactions.filter(t=>t.id!==('poll_'+poll.id+'_'+p.id));
+        data.openFolders[folder.id]=true; save(); render();
+      };
+      tdDel.appendChild(delP);
+      tr.append(tdName, tdStatus, tdPaid, tdDel);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    box.appendChild(table);
+
+    const addPersonRow = document.createElement('div');
+    addPersonRow.className = 'add-row'; addPersonRow.style.marginTop = '8px';
+    const pInput = document.createElement('input'); pInput.type='text'; pInput.placeholder='Nome da pessoa...';
+    const pBtn = document.createElement('button'); pBtn.textContent = 'Add';
+    pBtn.onclick = ()=>{ const name = pInput.value.trim(); if(!name) return; poll.people.push({id:uid(), name, status:poll.statusOptions[poll.statusOptions.length-1].v, paid:0}); data.openFolders[folder.id]=true; save(); render(); };
+    addPersonRow.append(pInput, pBtn);
+    box.appendChild(addPersonRow);
+
+    const manage = document.createElement('div');
+    manage.className = 'status-manage';
+    poll.statusOptions.forEach(opt=> manage.insertAdjacentHTML('beforeend', `<span class="status-chip">${escapeHtml(opt.label)}</span>`));
+    const addStatus = document.createElement('button');
+    addStatus.className = 'add-status-btn'; addStatus.textContent = '+ novo status';
+    addStatus.onclick = ()=>{
+      showTextModal('Nome do novo status (ex: Talvez, Reservado...):', (label)=>{
+        poll.statusOptions.push({ v: 'st_'+uid(), label });
+        data.openFolders[folder.id] = true; save(); render();
+      });
+    };
+    manage.appendChild(addStatus);
+    box.appendChild(manage);
+
+    const summary = document.createElement('div'); summary.className = 'poll-summary';
+    box.appendChild(summary);
+    renderPollSummary(box, poll);
+    block.appendChild(box);
+  });
+  return block;
+}
+
+function renderPollSummary(box, poll){
+  const summary = box.querySelector('.poll-summary');
+  const total = poll.people.reduce((s,p)=> s + (parseFloat(p.paid)||0), 0);
+  const byStatus = poll.statusOptions.map(opt=>{
+    const n = poll.people.filter(p=>p.status===opt.v).length;
+    return `<span>${escapeHtml(opt.label)}: <b>${n}</b></span>`;
+  }).join('');
+  summary.innerHTML = byStatus + `<span>Total pago: <b>R$ ${total.toFixed(2)}</b></span>`;
+}
+
+/* ---------- FINANCE VIEW ---------- */
+function renderFinanceView(root){
+  const wrap = document.createElement('div');
+  wrap.className = 'finance-wrap';
+  root.appendChild(wrap);
+
+  const mk = monthKey();
+  const txs = data.finance.transactions;
+  const entradasMes = txs.filter(t=>t.type==='entrada' && t.date.startsWith(mk)).reduce((s,t)=>s+t.amount,0);
+  const saidasMes = txs.filter(t=>t.type==='saida' && t.date.startsWith(mk)).reduce((s,t)=>s+t.amount,0);
+  const saldoGeral = txs.reduce((s,t)=> s + (t.type==='entrada'? t.amount : -t.amount), 0);
+
+  wrap.insertAdjacentHTML('beforeend', `
+    <div class="summary-row">
+      <div class="sum-card"><div class="label">Saldo geral</div><div class="value">R$ ${saldoGeral.toFixed(2)}</div></div>
+      <div class="sum-card entrada"><div class="label">Entradas do mês</div><div class="value">R$ ${entradasMes.toFixed(2)}</div></div>
+      <div class="sum-card saida"><div class="label">Saídas do mês</div><div class="value">R$ ${saidasMes.toFixed(2)}</div></div>
+    </div>
+  `);
+
+  // add transaction form
+  const allCats = data.categories;
+  const addRow = document.createElement('div');
+  addRow.className = 'add-row';
+  const typeSel = document.createElement('select');
+  [['saida','Saída (gasto)'],['entrada','Entrada']].forEach(([v,l])=>{ const o=document.createElement('option'); o.value=v; o.textContent=l; typeSel.appendChild(o); });
+  const labelSel = document.createElement('select');
+  function fillLabelSel(){
+    labelSel.innerHTML = '';
+    const list = data.finance.customCategories[typeSel.value];
+    if(list.length===0){ const o=document.createElement('option'); o.value=''; o.textContent='Crie uma categoria abaixo primeiro'; labelSel.appendChild(o); return; }
+    list.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; labelSel.appendChild(o); });
+  }
+  fillLabelSel();
+  typeSel.onchange = fillLabelSel;
+  const valInput = document.createElement('input'); valInput.type='number'; valInput.min='0'; valInput.step='0.01'; valInput.placeholder='Valor';
+  const noteInput = document.createElement('input'); noteInput.type='text'; noteInput.placeholder='Descrição';
+  const dateInput = document.createElement('input'); dateInput.type='date'; dateInput.value = todayIso();
+  const addBtn = document.createElement('button'); addBtn.textContent = 'Lançar';
+  addBtn.onclick = ()=>{
+    const amount = parseFloat(valInput.value);
+    if(!amount || amount<=0 || !labelSel.value) return;
+    data.finance.transactions.push({ id:uid(), type:typeSel.value, amount, labelId:labelSel.value, note:noteInput.value.trim(), date:dateInput.value||todayIso() });
+    valInput.value=''; noteInput.value='';
+    save(); render();
+  };
+  addRow.append(typeSel, labelSel, valInput, noteInput, dateInput, addBtn);
+  wrap.appendChild(addRow);
+
+  wrap.insertAdjacentHTML('beforeend', '<h3 style="font-size:13px; text-transform:uppercase; opacity:.6; letter-spacing:.5px; margin:22px 0 10px;">Personalizar categorias de entrada e saída</h3>');
+  ['entrada','saida'].forEach(kind=>{
+    const row = document.createElement('div');
+    row.className = 'status-manage';
+    row.style.marginBottom = '10px';
+    row.insertAdjacentHTML('beforeend', `<span style="font-size:12.5px; opacity:.7; margin-right:4px;">${kind==='entrada'?'Entrada':'Saída'}:</span>`);
+    data.finance.customCategories[kind].forEach(c=>{
+      const chip = document.createElement('span');
+      chip.className = 'status-chip';
+      chip.style.cursor = 'pointer';
+      chip.innerHTML = `${escapeHtml(c.name)} ✕`;
+      chip.title = 'Remover';
+      chip.onclick = ()=>{
+        data.finance.customCategories[kind] = data.finance.customCategories[kind].filter(x=>x.id!==c.id);
+        save(); render();
+      };
+      row.appendChild(chip);
+    });
+    const addBtn2 = document.createElement('button');
+    addBtn2.className = 'add-status-btn';
+    addBtn2.textContent = '+ nova';
+    addBtn2.onclick = ()=>{
+      showTextModal('Nome da nova categoria de '+(kind==='entrada'?'entrada':'saída')+':', (name)=>{
+        data.finance.customCategories[kind].push({id:uid(), name});
+        save(); render();
+      }, kind==='entrada' ? 'ex: Salário, Freela...' : 'ex: Mercado, Transporte...');
+    };
+    row.appendChild(addBtn2);
+    wrap.appendChild(row);
+  });
+
+  wrap.insertAdjacentHTML('beforeend', '<h3 style="font-size:13px; text-transform:uppercase; opacity:.6; letter-spacing:.5px; margin:22px 0 10px;">Para onde está indo o dinheiro (mês atual)</h3>');
+  if(allCats.length===0){
+    wrap.insertAdjacentHTML('beforeend', '<p class="empty">Crie categorias no Quadro para ver o extrato por categoria aqui.</p>');
+  }
+  const totalGastoMes = allCats.reduce((s,c)=> s + txs.filter(t=>t.type==='saida' && t.categoryId===c.id && t.date.startsWith(mk)).reduce((a,t)=>a+t.amount,0), 0);
+  allCats.forEach(cat=>{
+    const gastoMes = txs.filter(t=>t.type==='saida' && t.categoryId===cat.id && t.date.startsWith(mk)).reduce((s,t)=>s+t.amount,0);
+    const entradaMesCat = txs.filter(t=>t.type==='entrada' && t.categoryId===cat.id && t.date.startsWith(mk)).reduce((s,t)=>s+t.amount,0);
+    const liquido = gastoMes - entradaMesCat;
+    const pct = totalGastoMes>0 ? (gastoMes/totalGastoMes)*100 : 0;
+    const box = document.createElement('div');
+    box.className = 'cat-budget';
+    box.innerHTML = `
+      <div class="cat-budget-top"><h4>${escapeHtml(cat.name)}</h4></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:var(--accent-main)"></div></div>
+      <div class="cat-budget-meta">
+        <span>Saídas: R$ ${gastoMes.toFixed(2)} · Entradas: R$ ${entradaMesCat.toFixed(2)}</span>
+        <span>Líquido: R$ ${liquido.toFixed(2)}</span>
+      </div>
+    `;
+    wrap.appendChild(box);
+  });
+
+  wrap.insertAdjacentHTML('beforeend', '<h3 style="font-size:13px; text-transform:uppercase; opacity:.6; letter-spacing:.5px; margin:22px 0 10px;">Histórico mensal</h3>');
+  const months = [...new Set(txs.map(t=>t.date.slice(0,7)))].sort((a,b)=> b.localeCompare(a));
+  if(months.length===0){
+    wrap.insertAdjacentHTML('beforeend', '<p class="empty">Ainda sem histórico de meses.</p>');
+  } else {
+    months.forEach(m=>{
+      const ent = txs.filter(t=>t.type==='entrada' && t.date.startsWith(m)).reduce((s,t)=>s+t.amount,0);
+      const sai = txs.filter(t=>t.type==='saida' && t.date.startsWith(m)).reduce((s,t)=>s+t.amount,0);
+      const [y,mm] = m.split('-');
+      const label = new Date(y, mm-1, 1).toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+      const row = document.createElement('div');
+      row.className = 'ledger-item';
+      row.innerHTML = `<span style="font-weight:600; text-transform:capitalize;">${label}</span>
+        <span class="cat-tag">Entradas: R$ ${ent.toFixed(2)} · Saídas: R$ ${sai.toFixed(2)}</span>
+        <span class="amt ${sai>ent?'saida':'entrada'}">Líquido: R$ ${(ent-sai).toFixed(2)}</span>`;
+      wrap.appendChild(row);
+    });
+  }
+
+  wrap.insertAdjacentHTML('beforeend', '<h3 style="font-size:13px; text-transform:uppercase; opacity:.6; letter-spacing:.5px; margin:22px 0 10px;">Lançamentos</h3>');
+  const filterRow = document.createElement('div');
+  filterRow.className = 'add-row';
+  const filterSel = document.createElement('select');
+  const optAll = document.createElement('option'); optAll.value='all'; optAll.textContent='Todas as categorias'; filterSel.appendChild(optAll);
+  allCats.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; filterSel.appendChild(o); });
+  filterSel.value = ledgerFilterCat;
+  filterSel.onchange = ()=>{ ledgerFilterCat = filterSel.value; render(); };
+  filterRow.appendChild(filterSel);
+  const typeFilterSel = document.createElement('select');
+  [['all','Tudo (entrada e saída)'],['entrada','Somente entradas'],['saida','Somente saídas']].forEach(([v,l])=>{ const o=document.createElement('option'); o.value=v; o.textContent=l; typeFilterSel.appendChild(o); });
+  typeFilterSel.value = ledgerFilterType;
+  typeFilterSel.onchange = ()=>{ ledgerFilterType = typeFilterSel.value; render(); };
+  filterRow.appendChild(typeFilterSel);
+  wrap.appendChild(filterRow);
+
+  let filtered = ledgerFilterCat==='all' ? txs : txs.filter(t=>t.categoryId===ledgerFilterCat);
+  if(ledgerFilterType!=='all') filtered = filtered.filter(t=>t.type===ledgerFilterType);
+  const entFilt = filtered.filter(t=>t.type==='entrada').reduce((s,t)=>s+t.amount,0);
+  const saiFilt = filtered.filter(t=>t.type==='saida').reduce((s,t)=>s+t.amount,0);
+  wrap.insertAdjacentHTML('beforeend', `<p style="font-size:13px; opacity:.75; margin:-4px 0 12px;">Total no filtro — Entradas: <b>R$ ${entFilt.toFixed(2)}</b> · Saídas: <b>R$ ${saiFilt.toFixed(2)}</b></p>`);
+
+  const sorted = [...filtered].sort((a,b)=> b.date.localeCompare(a.date));
+  if(sorted.length===0){
+    wrap.insertAdjacentHTML('beforeend', '<p class="empty">Nenhum lançamento para esse filtro.</p>');
+  } else {
+    sorted.forEach(t=>{
+      const cat = data.categories.find(c=>c.id===t.categoryId);
+      const folderName = cat ? (cat.subfolders.find(f=>f.id===t.folderId)||{}).name : null;
+      const label = !cat && t.labelId ? data.finance.customCategories[t.type].find(c=>c.id===t.labelId) : null;
+      const tagText = cat ? escapeHtml(cat.name)+(folderName?' · '+escapeHtml(folderName):'') : (label ? escapeHtml(label.name) : '—');
+      const row = document.createElement('div');
+      row.className = 'ledger-item';
+      row.innerHTML = `<span class="badge b-${t.type}">${t.type==='entrada'?'Entrada':'Saída'}</span>
+        <span>${escapeHtml(t.note||'(sem descrição)')}</span>
+        <span class="cat-tag">${tagText} · ${formatDate(t.date)}</span>
+        <span class="amt ${t.type}">${t.type==='entrada'?'+':'-'} R$ ${t.amount.toFixed(2)}</span>`;
+      const del = document.createElement('button'); del.className='del'; del.textContent='✕';
+      del.onclick = ()=>{ data.finance.transactions = data.finance.transactions.filter(x=>x.id!==t.id); save(); render(); };
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+}
+
+document.getElementById('today').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
+render();
+</script>
+</body>
+</html>

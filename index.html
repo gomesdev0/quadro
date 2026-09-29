@@ -263,6 +263,50 @@ function todayIso(){ return new Date().toISOString().slice(0,10); }
 function monthKey(){ return new Date().toISOString().slice(0,7); }
 
 function closeModal(){ const m=document.getElementById('modal-root'); if(m) m.remove(); }
+function showFolderCreateModal(title, onSubmit){
+  closeModal();
+  const overlay=document.createElement('div'); overlay.id='modal-root'; overlay.className='modal-overlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) closeModal(); };
+  const box=document.createElement('div'); box.className='modal-box';
+  box.innerHTML = `<p>${title}</p>`;
+  const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nome da pasta (ex: Contas de luz)';
+  box.appendChild(nameInput);
+  box.insertAdjacentHTML('beforeend', '<p style="font-size:12.5px; opacity:.7; margin-top:4px;">O que deve aparecer nesta pasta?</p>');
+  const OPTIONS = [
+    {key:'tarefas', label:'📝 Tarefas'}, {key:'lembretes', label:'⏰ Lembretes'},
+    {key:'financeiro', label:'💰 Financeiro'}, {key:'enquetes', label:'🗳️ Enquetes'},
+  ];
+  const checksWrap = document.createElement('div');
+  checksWrap.style.display='flex'; checksWrap.style.flexDirection='column'; checksWrap.style.gap='7px'; checksWrap.style.margin='4px 0 8px';
+  const checkboxes = OPTIONS.map(opt=>{
+    const label = document.createElement('label');
+    label.style.display='flex'; label.style.alignItems='center'; label.style.gap='8px'; label.style.fontSize='14px';
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.checked=true; cb.value=opt.key;
+    cb.style.width='16px'; cb.style.height='16px'; cb.style.accentColor='var(--accent-main)';
+    label.append(cb, document.createTextNode(opt.label));
+    checksWrap.appendChild(label);
+    return cb;
+  });
+  box.appendChild(checksWrap);
+  const actions=document.createElement('div'); actions.className='modal-actions';
+  const cancel=document.createElement('button'); cancel.className='modal-cancel'; cancel.textContent='Cancelar'; cancel.onclick=closeModal;
+  const ok=document.createElement('button'); ok.className='modal-ok'; ok.textContent='Criar';
+  const submit=()=>{
+    const name = nameInput.value.trim();
+    if(!name) return;
+    const chosen = checkboxes.filter(c=>c.checked).map(c=>c.value);
+    closeModal();
+    onSubmit(name, chosen);
+  };
+  ok.onclick = submit;
+  nameInput.onkeydown = (e)=>{ if(e.key==='Enter') submit(); };
+  actions.append(cancel, ok);
+  box.appendChild(actions);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  setTimeout(()=>nameInput.focus(), 30);
+}
+
 function showTextModal(label, onSubmit, placeholder){
   closeModal();
   const overlay=document.createElement('div');
@@ -534,12 +578,12 @@ function renderCategoryView(root, catId){
   addFolder.className = 'add-folder-btn';
   addFolder.textContent = '+ nova pasta';
   addFolder.onclick = ()=>{
-    showTextModal('Nome da nova pasta em "'+escapeHtml(cat.name)+'":', (name)=>{
+    showFolderCreateModal('Nova pasta em "'+escapeHtml(cat.name)+'"', (name, sections)=>{
       const id = uid();
-      cat.subfolders.push({id, name});
+      cat.subfolders.push({id, name, sections});
       data.tasks[id]=[]; data.polls[id]=[]; data.openFolders[id]=true;
       save(); render();
-    }, 'ex: Contas de luz');
+    });
   };
   wrap.appendChild(addFolder);
 }
@@ -549,12 +593,14 @@ function renderFolderSections(container, f){
   const active = data.folderActiveSection[f.id] || null;
   const picker = document.createElement('div');
   picker.className = 'section-picker';
-  const sections = [
+  const allSections = [
     {key:'tarefas', label:'Tarefas', icon:'📝', count: data.tasks[f.id].filter(t=>!t.isReminder).length},
     {key:'lembretes', label:'Lembretes', icon:'⏰', count: data.tasks[f.id].filter(t=>t.isReminder).length},
     {key:'financeiro', label:'Financeiro', icon:'💰', count: data.finance.transactions.filter(t=>t.folderId===f.id).length},
     {key:'enquetes', label:'Enquetes', icon:'🗳️', count: (data.polls[f.id]||[]).length},
   ];
+  const enabledKeys = f.sections || allSections.map(s=>s.key);
+  const sections = allSections.filter(s=>enabledKeys.includes(s.key));
   sections.forEach(s=>{
     const b = document.createElement('button');
     b.className = 'section-bubble' + (active===s.key ? ' active' : '');
